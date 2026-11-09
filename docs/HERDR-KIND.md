@@ -14,7 +14,7 @@ maintainers invite it.
 
 ## Discussion text (short)
 
-> rpi (https://github.com/<owner>/rpi-herdr adapter) reports state to Herdr with
+> rpi (https://github.com/christiangenco/rpi-herdr adapter) reports state to Herdr with
 > `--source rpi --agent rpi`, so sidebar and `agent list` work. But on 0.9.1,
 > `herdr agent prompt` returns `not an active named agent` and `agent explain`
 > shows no detected agent label, and `agent start --kind rpi` is not accepted.

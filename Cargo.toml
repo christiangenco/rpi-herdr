@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "Report rpi lifecycle state to Herdr. No-op outside a Herdr pane."
 publish = false
+repository = "https://github.com/christiangenco/rpi-herdr"
 
 [lib]
 name = "rpi_herdr"

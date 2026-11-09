@@ -8,7 +8,7 @@ see your rpi session. Outside Herdr it does nothing. The command is `rpi`.
 ## Install
 
 ```sh
-rpi install rpi-herdr --github <owner>/rpi-herdr
+rpi install rpi-herdr --github christiangenco/rpi-herdr
 ```
 
 This uses rpi's prebuilt extension protocol: the GitHub Release tagged
@@ -16,7 +16,7 @@ This uses rpi's prebuilt extension protocol: the GitHub Release tagged
 To build from source instead:
 
 ```sh
-git clone https://github.com/<owner>/rpi-herdr && cd rpi-herdr
+git clone https://github.com/christiangenco/rpi-herdr && cd rpi-herdr
 rpi install --path . --force
 ```
 
