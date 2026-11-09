@@ -13,7 +13,7 @@ jobs:
         include:
           - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest, lib: librpi_herdr.so }
           - { target: aarch64-unknown-linux-gnu, os: ubuntu-24.04-arm, lib: librpi_herdr.so }
-          - { target: x86_64-apple-darwin, os: macos-13, lib: librpi_herdr.dylib }
+          - { target: x86_64-apple-darwin, os: macos-latest, lib: librpi_herdr.dylib }
           - { target: aarch64-apple-darwin, os: macos-latest, lib: librpi_herdr.dylib }
     runs-on: ${{ matrix.os }}
     steps:
