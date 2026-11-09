@@ -1,0 +1,62 @@
+# Push a tag named rpi-herdr-v<version> (must match Cargo.toml) to publish.
+# rpi install requires: per-target archives first, rpi-extension.json last.
+name: release
+on:
+  push:
+    tags: ["rpi-herdr-v*"]
+permissions:
+  contents: write
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-latest, lib: librpi_herdr.so }
+          - { target: aarch64-unknown-linux-gnu, os: ubuntu-24.04-arm, lib: librpi_herdr.so }
+          - { target: x86_64-apple-darwin, os: macos-13, lib: librpi_herdr.dylib }
+          - { target: aarch64-apple-darwin, os: macos-latest, lib: librpi_herdr.dylib }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup target add ${{ matrix.target }}
+      - run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Package
+        run: |
+          set -euo pipefail
+          out="dist/${{ matrix.target }}"; mkdir -p "$out"
+          lib="target/${{ matrix.target }}/release/${{ matrix.lib }}"
+          cp "$lib" "$out/${{ matrix.lib }}"
+          tar -C "$out" -czf "$out/rpi-herdr-${{ matrix.target }}.tar.gz" "${{ matrix.lib }}"
+          (cd "$out" && (sha256sum "${{ matrix.lib }}" 2>/dev/null || shasum -a 256 "${{ matrix.lib }}") | cut -d' ' -f1 > library.sha256)
+          echo "${{ matrix.lib }}" > "$out/library.name"
+          rm "$out/${{ matrix.lib }}"
+      - uses: actions/upload-artifact@v4
+        with: { name: "${{ matrix.target }}", path: "dist/${{ matrix.target }}" }
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: dist }
+      - name: Check tag matches Cargo.toml and upload archives
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          [ "$GITHUB_REF_NAME" = "rpi-herdr-v$version" ] || { echo "tag/version mismatch"; exit 1; }
+          gh release create "$GITHUB_REF_NAME" --title "rpi-herdr $version" --notes "Herdr adapter for rpi $version" || true
+          gh release upload "$GITHUB_REF_NAME" dist/*/*.tar.gz --clobber
+      - name: Upload manifest last
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NAME: rpi-herdr
+          TAG: ${{ github.ref_name }}
+          PLUGIN_ABI: "4"
+        run: |
+          set -euo pipefail
+          export VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          export SDK_VERSION=$(awk '/name = "rpi-plugin-sdk"/{getline; gsub(/[^0-9.]/,"",$3); print $3; exit}' Cargo.lock)
+          python3 scripts/make-manifest.py dist > rpi-extension.json
+          cat rpi-extension.json
+          gh release upload "$TAG" rpi-extension.json --clobber

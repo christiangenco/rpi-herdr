@@ -1,0 +1,10 @@
+/target
+# rpi session transcripts and locks: never publish
+/.rpi/
+# local task files
+/PUBLISH.md
+/PUBLISH-STATUS.md
+auth.json
+models.json
+.env
+*.pem
